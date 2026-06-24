@@ -93,4 +93,5 @@ export interface SiteSettings {
   footerLinks: FooterLink[];
   socialLinks: SocialLinks;
   contactInfo: ContactInfo;
+  aboutImageUrl?: string;
 }

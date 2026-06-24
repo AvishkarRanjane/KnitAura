@@ -65,17 +65,12 @@ export default function CartPage() {
       // 1. Write to Firestore
       await setDoc(doc(db, "orders", orderId), orderPayload);
 
-      // 2. Call our API Route to send WhatsApp message
-      const res = await fetch("/api/send-order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(orderPayload),
-      });
-
-      if (!res.ok) {
-        // We still consider the order placed in our DB, but WA failed
-        console.warn("Order saved, but failed to send WhatsApp notification");
-      }
+      // 2. Redirect user directly to WhatsApp with pre-filled message
+      const itemsList = items.map(i => `- ${i.quantity}x ${i.title} (₹${i.price})`).join('\n');
+      const message = `🛒 *New Order!*\n\n*Customer:* ${data.customerName}\n*Phone:* ${data.customerPhone}\n*Address:* ${data.customerAddress}\n\n*Items:*\n${itemsList}\n\n*Total:* ₹${cartTotal}\n*Order ID:* ${orderId}`;
+      
+      const whatsappUrl = `https://wa.me/919372889465?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank');
 
       // 3. Clear Cart & Show Modal
       clearCart();

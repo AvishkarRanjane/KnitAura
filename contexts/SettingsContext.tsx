@@ -19,7 +19,7 @@ const defaultSettings: SiteSettings = {
   faqs: [],
   footerLinks: [],
   socialLinks: {},
-  contactInfo: { email: "", phone: "", address: "" },
+  contactInfo: { email: "Ranjane1985@gmail.com", phone: "+91 9372889465", address: "" },
 };
 
 const SettingsContext = createContext<SettingsContextType>({

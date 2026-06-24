@@ -10,8 +10,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { db } from "@/lib/firebase";
+import { db, rtdb } from "@/lib/firebase";
 import { doc, setDoc, updateDoc } from "firebase/firestore";
+import { ref as rtdbRef, set as rtdbSet, update as rtdbUpdate } from "firebase/database";
 import { uploadFile } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, ImagePlus } from "lucide-react";
@@ -93,19 +94,30 @@ export default function ProductForm({
       };
 
       if (product) {
-        // Update
+        // Update Firestore
         const docRef = doc(db, "products", product.id);
         await updateDoc(docRef, productData);
+        
+        // Update Realtime Database
+        const realtimeRef = rtdbRef(rtdb, `products/${product.id}`);
+        await rtdbUpdate(realtimeRef, productData);
+        
         toast({ title: "Product Updated", description: "The product was updated successfully." });
       } else {
-        // Create
+        // Create Firestore
         const newId = uuidv4();
         const docRef = doc(db, "products", newId);
-        await setDoc(docRef, {
+        const newProductData = {
           ...productData,
           id: newId,
           createdAt: Date.now(),
-        });
+        };
+        await setDoc(docRef, newProductData);
+        
+        // Create Realtime Database
+        const realtimeRef = rtdbRef(rtdb, `products/${newId}`);
+        await rtdbSet(realtimeRef, newProductData);
+
         toast({ title: "Product Created", description: "The product was created successfully." });
       }
       onClose();

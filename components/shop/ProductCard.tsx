@@ -7,16 +7,20 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Pencil, ShoppingBag } from "lucide-react";
+import { Pencil, ShoppingBag, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import ProductForm from "./ProductForm";
+import { db, rtdb } from "@/lib/firebase";
+import { doc, deleteDoc } from "firebase/firestore";
+import { ref as rtdbRef, remove as rtdbRemove } from "firebase/database";
 
 export default function ProductCard({ product }: { product: Product }) {
   const { isManager } = useRole();
   const { addItem } = useCartStore();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleAddToCart = () => {
     if (product.stock <= 0) return;
@@ -33,6 +37,21 @@ export default function ProductCard({ product }: { product: Product }) {
       title: "Added to Cart",
       description: `${product.title} has been added to your cart.`,
     });
+  };
+
+  const handleDelete = async () => {
+    if (!confirm("Are you sure you want to delete this product?")) return;
+    setIsDeleting(true);
+    try {
+      await deleteDoc(doc(db, "products", product.id));
+      await rtdbRemove(rtdbRef(rtdb, `products/${product.id}`));
+      toast({ title: "Product Deleted", description: `${product.title} has been removed.` });
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      toast({ title: "Error", description: "Failed to delete product.", variant: "destructive" });
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -65,9 +84,12 @@ export default function ProductCard({ product }: { product: Product }) {
           </div>
 
           {isManager && (
-            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
               <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full shadow-md" onClick={() => setIsEditing(true)}>
                 <Pencil className="w-4 h-4 text-primary" />
+              </Button>
+              <Button size="icon" variant="destructive" className="h-8 w-8 rounded-full shadow-md" onClick={handleDelete} disabled={isDeleting}>
+                <Trash2 className="w-4 h-4" />
               </Button>
             </div>
           )}

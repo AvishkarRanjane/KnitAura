@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Pencil, ShoppingBag, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
-import ProductForm from "./ProductForm";
+import ProductForm from "@/components/shop/ProductForm";
 import { db, rtdb } from "@/lib/firebase";
 import { doc, deleteDoc } from "firebase/firestore";
 import { ref as rtdbRef, remove as rtdbRemove } from "firebase/database";

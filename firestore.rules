@@ -1,0 +1,49 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Function to check if user is signed in
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Function to check if user is a manager
+    // Requires users collection to have a role field
+    function isManager() {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'manager';
+    }
+
+    // Users can read/write their own data. Managers can read/write all users.
+    match /users/{userId} {
+      allow read, write: if isAuthenticated() && (request.auth.uid == userId || isManager());
+    }
+
+    // Anyone can read products. Only managers can write products.
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isManager();
+    }
+
+    // Anyone can read approved reviews. Managers can read all reviews.
+    // Authenticated users can create new reviews. Only managers can update/delete.
+    match /reviews/{reviewId} {
+      allow read: if resource.data.isApproved == true || isManager();
+      allow create: if true; // Allow anyone to submit a review (Feedback form)
+      allow update, delete: if isManager();
+    }
+
+    // Users can read/write their own orders. Managers can read/write all orders.
+    match /orders/{orderId} {
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if isManager() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+    }
+
+    // Anyone can read site settings. Only managers can write.
+    match /siteSettings/{document=**} {
+      allow read: if true;
+      allow write: if isManager();
+    }
+  }
+}

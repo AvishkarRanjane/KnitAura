@@ -4,16 +4,17 @@ import { useState, useEffect, useMemo } from "react";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Product } from "@/lib/types";
+import { MOCK_PRODUCTS } from "@/lib/mockProducts";
 import { useRole } from "@/hooks/useRole";
 import ProductCard from "@/components/shop/ProductCard";
 import ShopFilters from "@/components/shop/ShopFilters";
 import ProductForm from "@/components/shop/ProductForm";
 import { Button } from "@/components/ui/button";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Plus, Sparkles } from "lucide-react";
 
 export default function ShopPage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState<Product[]>(MOCK_PRODUCTS);
+  const [loading, setLoading] = useState(false);
   const { isManager } = useRole();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
@@ -25,21 +26,43 @@ export default function ShopPage() {
   const itemsPerPage = 12;
 
   useEffect(() => {
-    // Managers see all (even inactive), Users see only active
-    const q = isManager 
-      ? query(collection(db, "products"))
-      : query(collection(db, "products"), where("isActive", "==", true));
+    // Attempt Firestore fetch with fallback safety
+    let isMounted = true;
+    try {
+      const q = isManager 
+        ? query(collection(db, "products"))
+        : query(collection(db, "products"), where("isActive", "==", true));
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const fetched: Product[] = [];
-      snapshot.forEach((doc) => {
-        fetched.push({ id: doc.id, ...doc.data() } as Product);
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        if (!isMounted) return;
+        const fetched: Product[] = [];
+        snapshot.forEach((doc) => {
+          fetched.push({ id: doc.id, ...doc.data() } as Product);
+        });
+
+        if (fetched.length > 0) {
+          setProducts(fetched);
+        } else {
+          setProducts(MOCK_PRODUCTS);
+        }
+        setLoading(false);
+      }, (error) => {
+        console.warn("Firestore shop fetch fallback to mock items:", error);
+        if (isMounted) {
+          setProducts(MOCK_PRODUCTS);
+          setLoading(false);
+        }
       });
-      setProducts(fetched);
-      setLoading(false);
-    });
 
-    return () => unsubscribe();
+      return () => {
+        isMounted = false;
+        unsubscribe();
+      };
+    } catch (err) {
+      console.warn("Firestore error, rendering mock products:", err);
+      setProducts(MOCK_PRODUCTS);
+      setLoading(false);
+    }
   }, [isManager]);
 
   const categories = useMemo(() => {
@@ -72,7 +95,6 @@ export default function ShopPage() {
 
       if (sortBy === "price-asc") return priceA - priceB;
       if (sortBy === "price-desc") return priceB - priceA;
-      // newest
       return b.createdAt - a.createdAt;
     });
 
@@ -88,10 +110,14 @@ export default function ShopPage() {
 
   return (
     <div className="container mx-auto px-4 py-12">
-      <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-4xl font-serif font-bold text-foreground">Our Shop</h1>
-          <p className="text-muted-foreground mt-2">Explore our full collection of handcrafted crochet items.</p>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-800 text-xs font-semibold uppercase tracking-wider mb-2">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>KnitAura Collection</span>
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-serif font-bold text-foreground">Artisanal Shop</h1>
+          <p className="text-muted-foreground mt-1">Discover handcrafted luxury crochet, cozy apparel, and sustainable home decor.</p>
         </div>
         
         {isManager && (
@@ -113,13 +139,13 @@ export default function ShopPage() {
       />
 
       {loading ? (
-        <div className="flex justify-center py-32">
-          <Loader2 className="w-10 h-10 animate-spin text-primary" />
+        <div className="flex justify-center py-24">
+          <Loader2 className="w-10 h-10 animate-spin text-amber-600" />
         </div>
       ) : filteredAndSortedProducts.length === 0 ? (
-        <div className="text-center py-32 bg-muted/30 rounded-2xl border border-dashed">
+        <div className="text-center py-24 bg-muted/20 rounded-3xl border border-dashed border-border/80">
           <h3 className="text-xl font-semibold mb-2">No products found</h3>
-          <p className="text-muted-foreground">Try adjusting your search or filters.</p>
+          <p className="text-muted-foreground">Try clearing your search query or category filters.</p>
         </div>
       ) : (
         <>
@@ -135,6 +161,7 @@ export default function ShopPage() {
                 variant="outline" 
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage(p => p - 1)}
+                className="rounded-full"
               >
                 Previous
               </Button>
@@ -145,6 +172,7 @@ export default function ShopPage() {
                 variant="outline" 
                 disabled={currentPage === totalPages}
                 onClick={() => setCurrentPage(p => p + 1)}
+                className="rounded-full"
               >
                 Next
               </Button>

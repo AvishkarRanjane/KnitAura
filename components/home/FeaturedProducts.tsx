@@ -4,14 +4,14 @@ import { useState, useEffect } from "react";
 import { collection, query, where, limit, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Product } from "@/lib/types";
+import { MOCK_PRODUCTS } from "@/lib/mockProducts";
 import ProductCard from "@/components/shop/ProductCard";
-import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
 
 export default function FeaturedProducts() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState<Product[]>(MOCK_PRODUCTS.slice(0, 4));
 
   useEffect(() => {
     const fetchFeatured = async () => {
@@ -19,19 +19,19 @@ export default function FeaturedProducts() {
         const q = query(
           collection(db, "products"),
           where("isActive", "==", true),
-          where("isBestSeller", "==", true),
           limit(4)
         );
         const querySnapshot = await getDocs(q);
         const featured: Product[] = [];
         querySnapshot.forEach((doc) => {
-          featured.push(doc.data() as Product);
+          featured.push({ id: doc.id, ...doc.data() } as Product);
         });
-        setProducts(featured);
+
+        if (featured.length > 0) {
+          setProducts(featured);
+        }
       } catch (error) {
-        console.error("Error fetching featured products:", error);
-      } finally {
-        setLoading(false);
+        console.warn("Using mock featured products:", error);
       }
     };
 
@@ -41,36 +41,24 @@ export default function FeaturedProducts() {
   return (
     <section className="py-20 bg-background">
       <div className="container mx-auto px-4">
-        <div className="flex justify-between items-end mb-10">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-12 gap-4">
           <div>
-            <h2 className="text-3xl font-serif font-bold text-foreground">Featured Creations</h2>
-            <p className="text-muted-foreground mt-2">Our most loved handcrafted items.</p>
+            <span className="text-xs font-semibold text-amber-700 uppercase tracking-widest">Handcrafted Essentials</span>
+            <h2 className="text-3xl sm:text-4xl font-serif font-bold text-foreground mt-1">Featured Creations</h2>
+            <p className="text-muted-foreground mt-1">Our most loved artisanal crochet items.</p>
           </div>
-          <Link href="/shop" className="hidden sm:block">
-            <Button variant="outline" className="rounded-full">View All</Button>
+          <Link href="/shop">
+            <Button variant="outline" className="rounded-full px-6 border-border/80 hover:bg-muted group">
+              Explore All Shop Items
+              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+            </Button>
           </Link>
         </div>
 
-        {loading ? (
-          <div className="flex justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          </div>
-        ) : products.length === 0 ? (
-          <div className="text-center py-20 text-muted-foreground">
-            No featured products at the moment.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        )}
-        
-        <div className="mt-8 text-center sm:hidden">
-          <Link href="/shop">
-            <Button variant="outline" className="rounded-full w-full">View All</Button>
-          </Link>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {products.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
         </div>
       </div>
     </section>

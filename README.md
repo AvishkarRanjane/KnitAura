@@ -1,36 +1,128 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<div align="center">
+  <img src="./public/hero-banner.png" alt="KnitAura Hero Banner" width="100%" style="border-radius: 16px; margin-bottom: 20px;">
 
-## Getting Started
+  # KnitAura 🧶
+  ### Handcrafted Luxury Crochet & Sustainable Knitwear Studio
 
-First, run the development server:
+  [![Vercel Deployment](https://img.shields.io/badge/Vercel-Live_Demo-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://knitaura.vercel.app)
+  [![Framework: Next.js 14](https://img.shields.io/badge/Next.js-14_App_Router-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org)
+  [![Styling: Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+  [![Backend: Firebase](https://img.shields.io/badge/Backend-Firebase_v10-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com)
+  [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+</div>
+
+---
+
+## 📖 Overview
+
+**KnitAura** is an ultra-polished, Apple-inspired e-commerce platform dedicated to handcrafted luxury crochet, artisanal knitwear, and sustainable home goods. 
+
+Built with Next.js 14 (App Router), TypeScript, TailwindCSS, Framer Motion, and Firebase v10+, KnitAura seamlessly blends rich aesthetics, fluid spring micro-animations, real-time inventory management, cart state persistence, and WhatsApp order routing.
+
+---
+
+## 🌟 Key Features
+
+- 🍎 **Apple-Inspired Glassmorphic Aesthetic**: Translucent frosted panels, warm HSL color tokens, Framer Motion entrance physics, and soft rounded shadow elevations (`rounded-3xl`).
+- 🛒 **Persistent Shopping Cart**: Interactive slide-over cart drawer powered by Zustand state management with real-time total calculation and WhatsApp checkout.
+- 📱 **WhatsApp Instant Order Dispatch**: Serverless Next.js API route (`/api/send-order`) sending formatted order confirmations directly to business WhatsApp endpoints.
+- 🔒 **Role-Based Firebase Auth & Content Management**: Dynamic role hooks (`useRole`) enabling live product editing, stock updates, and inline content management for store managers.
+- ⚡ **Zero-Latency Search & Category Filters**: Real-time filtering by category, price ranges, bestseller tags, and stock availability.
+- 🛡️ **Build-Time Prerender Safety**: Resilient Firebase fallback initialization ensuring error-free static generation (SSG) across all routes.
+
+---
+
+## 📐 Architecture & Folder Structure
+
+```text
+KnitAura/
+├── app/
+│   ├── about/             # About Us page & FAQ accordion
+│   ├── api/
+│   │   ├── send-order/    # WhatsApp Order Integration API
+│   │   └── sync-sheet/    # Google Sheets Feedback Sync API
+│   ├── auth/              # Firebase Auth Login & Signup page
+│   ├── cart/              # Cart & Order Confirmation Checkout
+│   ├── shop/              # Product Catalog & Dynamic Filtering
+│   ├── globals.css        # Tailwind directives & Apple glassmorphism tokens
+│   ├── layout.tsx         # Root Layout with Font Providers & Toast
+│   └── page.tsx           # Home Landing Page
+├── components/
+│   ├── about/             # AboutContent, AboutImage, FaqAccordion
+│   ├── cart/              # CartItem, OrderConfirmModal
+│   ├── home/              # HeroSection, FeaturedProducts, ReviewsSection
+│   ├── layout/            # Navbar, Footer
+│   ├── manager/           # ManagerBadge, ManagerSaveBar
+│   ├── shop/              # ProductCard, ProductForm, ShopFilters
+│   └── ui/                # Radix UI Primitives (Accordion, Dialog, Button)
+├── contexts/              # AuthContext, CartContext, SettingsContext
+├── hooks/                 # useRole, useSettings, useSettingsStore, use-toast
+├── lib/
+│   ├── firebase.ts        # Firebase app & SDK initialization
+│   ├── firestore.ts       # Firestore document helper queries
+│   ├── storage.ts         # Secure image upload helper
+│   └── types.ts           # TypeScript domain interfaces
+├── public/                # Favicons, hero banners, product image assets
+├── AUDIT_REPORT.md        # Technical code audit report
+├── AGENT_LOG.md           # Continuous execution log
+├── package.json           # Next.js dependencies & scripts
+├── vercel.json            # Vercel Next.js deployment configuration
+└── README.md              # Project documentation
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🚀 Quick Start & Local Setup
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 1. Clone Repository
+```bash
+git clone https://github.com/AvishkarRanjane/KnitAura.git
+cd KnitAura
+```
 
-## Learn More
+### 2. Install Dependencies
+```bash
+npm install
+```
 
-To learn more about Next.js, take a look at the following resources:
+### 3. Configure Environment Variables (.env.local)
+```bash
+NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 4. Launch Development Server
+```bash
+npm run dev
+# Open http://localhost:3000 in your browser
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 5. Build Production Bundle
+```bash
+npm run build
+```
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🛠️ Tech Stack
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Framework**: Next.js 14 (App Router, Server Actions, API Routes)
+- **Language**: TypeScript 5
+- **Styling**: Tailwind CSS, Radix UI Primitives, Lucide Icons
+- **Animations**: Framer Motion
+- **State Management**: Zustand
+- **Backend & Database**: Firebase v10 (Authentication, Firestore, Storage)
+- **Hosting**: Vercel Production Edge Network
+
+---
+
+## 📜 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+Developed with ❤️ by **Avishkar Ranjane**.

@@ -5,15 +5,22 @@ export { storage, ref, uploadBytes, getDownloadURL, deleteObject };
 
 /**
  * Uploads a file to ImgBB (Free Image Hosting) and returns the download URL.
- * This is much faster than Firebase Storage and requires no setup.
+ * Securely retrieves API key from NEXT_PUBLIC_IMGBB_API_KEY environment variable.
  */
 export const uploadFile = async (file: File, path?: string): Promise<string> => {
   const formData = new FormData();
   formData.append("image", file);
   
-  // We use the environment variable, but you can hardcode your ImgBB key here if you prefer
-  const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY || "e1d67be92abf4886f7b18cbac6cb4f19"; 
-  
+  const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY; 
+  if (!apiKey) {
+    console.warn("NEXT_PUBLIC_IMGBB_API_KEY is not defined. Falling back to local data URL.");
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.readAsDataURL(file);
+    });
+  }
+
   try {
     const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
       method: "POST",
@@ -22,7 +29,7 @@ export const uploadFile = async (file: File, path?: string): Promise<string> => 
     
     const data = await response.json();
     if (data.success) {
-      return data.data.url; // Returns the direct image URL
+      return data.data.url;
     } else {
       throw new Error(data.error?.message || "Failed to upload image");
     }

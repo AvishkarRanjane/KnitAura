@@ -11,15 +11,19 @@ interface SettingsContextType {
 }
 
 const defaultSettings: SiteSettings = {
-  websiteName: "Hooks & Knots",
+  websiteName: "KnitAura",
   logoUrl: "",
-  heroHeading: "Handcrafted Crochet with Love",
-  heroSubheading: "Discover beautiful, warm, and sustainable crochet items for you and your home.",
-  aboutText: "We are passionate about creating high-quality crochet products...",
-  faqs: [],
+  heroHeading: "Handcrafted Luxury Crochet & Artisanal Knitwear",
+  heroSubheading: "Discover cozy, sustainable, and meticulously handcrafted knitwear made with premium natural fibers.",
+  aboutText: "At KnitAura, we are passionate about weaving warmth, elegance, and sustainable craftsmanship into every stitch. Each piece is handcrafted with love and natural yarns.",
+  faqs: [
+    { question: "Are all products 100% handcrafted?", answer: "Yes, every single item in our catalog is individually hand-crocheted by skilled artisans." },
+    { question: "How do I care for my crochet items?", answer: "We recommend gentle hand washing in lukewarm water with mild detergent and laying flat to dry." },
+    { question: "Do you ship across India & internationally?", answer: "Yes, we provide nationwide express shipping as well as international delivery options." }
+  ],
   footerLinks: [],
-  socialLinks: {},
-  contactInfo: { email: "Ranjane1985@gmail.com", phone: "+91 9372889465", address: "" },
+  socialLinks: { instagram: "https://instagram.com", whatsapp: "https://wa.me/919372889465" },
+  contactInfo: { email: "hello@knitaura.com", phone: "+91 9372889465", address: "Craft Studio #4, Creative Enclave, Pune, India" },
 };
 
 const SettingsContext = createContext<SettingsContextType>({
@@ -32,21 +36,27 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const docRef = doc(db, "siteSettings", "config");
-    const unsubscribe = onSnapshot(docRef, (docSnap) => {
-      if (docSnap.exists()) {
-        setSettings({ ...defaultSettings, ...docSnap.data() } as SiteSettings);
-      } else {
-        // Document might not exist yet, use default
+    try {
+      const docRef = doc(db, "siteSettings", "config");
+      const unsubscribe = onSnapshot(docRef, (docSnap) => {
+        if (docSnap.exists()) {
+          setSettings({ ...defaultSettings, ...docSnap.data() } as SiteSettings);
+        } else {
+          setSettings(defaultSettings);
+        }
+        setLoading(false);
+      }, (error) => {
+        console.warn("Using default site settings:", error);
         setSettings(defaultSettings);
-      }
-      setLoading(false);
-    }, (error) => {
-      console.error("Error fetching site settings:", error);
-      setLoading(false);
-    });
+        setLoading(false);
+      });
 
-    return () => unsubscribe();
+      return () => unsubscribe();
+    } catch (err) {
+      console.warn("Firestore listener fallback:", err);
+      setSettings(defaultSettings);
+      setLoading(false);
+    }
   }, []);
 
   return (
